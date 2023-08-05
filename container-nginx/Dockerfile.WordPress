@@ -1,0 +1,18 @@
+FROM ubuntu:latest
+ENV TZ="Europe/London"
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN apt update \
+    && apt -y upgrade \
+    && apt -y install nginx curl unzip php php-fpm php-json php-mysqli php-curl \
+    php-dom php-exif php-fileinfo php-igbinary php-imagick php-intl php-mbstring  php-xml php-zip
+
+RUN curl https://wordpress.org/latest.zip -o /tmp/latest.zip \
+    && unzip /tmp/latest -d /var/www/ && chown www-data -R /var/www/wordpress
+COPY ./wordpress /etc/nginx/sites-enabled/wordpress
+RUN rm /etc/nginx/sites-enabled/default
+
+EXPOSE 80
+EXPOSE 443
+
+ENTRYPOINT ["/bin/bash", "-c", "service nginx start && service php8.1-fpm start && /bin/bash"]
